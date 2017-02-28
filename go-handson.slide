@@ -1,0 +1,1846 @@
+Go hands-on for Go beginners
+28 Feb 2017
+
+Yusuke Kato
+i.can.feel.gravity@gmail.com
+https://github.com/kpango
+
+* License and Materials
+
+This presentation is a Japanese translation of [[https://dave.cheney.net][davecheney]]'s presentation, and the licensed under the [[https://creativecommons.org/licenses/by-sa/4.0/][Creative Commons Attribution-ShareAlike 4.0 International]] licence.
+
+The materials for this presentation are available on GitHub:
+
+.link https://github.com/kpango/go-handson
+
+You are encouraged to remix, transform, or build upon the material, providing you give appropriate credit and distribute your contributions under the same license.
+
+If you have suggestions or corrections to this presentation, please raise [[https://github.com/kpango/go-handson/issues][an issue on the GitHub project]].
+
+* アジェンダ
+
+このプレゼンテーションは他のプログラミング言語の経験者向けにGo言語のスキルを習得してもらうためのスライドです。
+
+全体を通して下記の5つのセクションに分かれています。
+
+- 基礎文法
+- 応用文法
+- 開発環境とツール
+- 標準ライブラリ
+- パッケージとアプリケーション
+
+質問は随時受け付けています
+
+このワークショップでは講義の時間よりも実践の時間を多くとることでGo言語についての理解を早くしています。
+
+* The Go programming language
+
+- Modern
+- コンパクト、簡潔、汎用的
+- 命令的、静的型チェック、動的型安全
+- ガベージコレクション
+- ネイティヴコードへのコンパイル、スタティックリンク
+- 高速にコンパイルでき、高速に動作する
+- 充実した標準パッケージ
+
+プログラマーのためにプログラマーが設計した言語
+
+.link https://talks.golang.org/2014/taste.slide#2 Source: Robert Griesemer, A Taste of Go.
+
+* 速度
+
+Go言語は高速であるという記述はよく見受けられますが、これはGo言語における要素のほんの一面でしかありません。
+
+Go言語の生みの親は以下のように述べています。
+
+「False dichotomy of static languages being 'slow and painful' and dynamic languages being 'fast and fun'」
+-Rob Pike
+
+「Clumsy type systems drive people to dynamically typed languages」
+-Robert Griesemer
+
+Go言語は高速なプログラムを早く安全に構築できる生産性を提供してくれるプログラマーのためにつくられた新しい言語です。
+
+* 安全性
+
+- 型と型安全
+
+ var i int = -1
+ var u uint = 200
+ i = u   //型の不一致によりエラー 
+
+- スライスへのアクセスは、スライス長がチェックされる
+
+ s := make([]string, 10)
+ x := s[20] //runtime panic
+
+- 初期化されていない変数のメモリ空間は0である
+
+ var q int       // initialised to 0
+ var f = 7       // initialised to 7, type defaults to int
+
+- 暗黙的型変換は存在しないため、intとboolはエイリアスではありません
+
+ i := 2
+ if i { ... }    // bool値ではないためエラー
+
+* 並行性のための優れた機能
+
+- マルチコアCPU対応
+- マルチプロセスではありません
+- ランタイムに統合された標準ネットワークライブラリが充実
+- 後述するgoroutineやsyncパッケージ
+
+* ガベージコレクション
+
+Go言語はGC言語です
+
+- 共有された値に対する所有権に関連するエラーを排除します
+- メモリリークや解放された空間にアクセスすることによるバグを排除します
+- シンプルで簡潔なAPIが使えます
+
+Go言語のガベージコレクタ「ストップザワールド」を極端に少なくするように設計されています
+Go言語バージョン1.8では100μs未満となっていて、10μs未満になることもあります。
+
+* 厳格性 & 統一性
+
+Go言語は非常に厳格な言語です
+
+- 未使用の変数はエラーです
+- 未使用のimportもエラーです
+- コンパイラーは警告を問題とせす、エラーのみを問題とします
+- go fmt コマンドによってソースコードフォーマットが統一されています
+
+* Hello, http!
+
+.code src/hellohttp/hellohttp.go
+
+* Basic Syntax
+
+* Basic Syntax 
+
+このセクションでは、短いGoのプログラムを通してGo言語の基礎文法を見ていきます
+
+スライド中のソースコードは実行可能形式となっています
+
+このセクションの終わりには下記の内容が習得できているでしょう
+
+- 変数、定数の宣言
+- for, if などの文法
+- 型の挙動
+- 独自定義の関数の宣言方法
+- パッケージとimportの挙動など
+
+* 定数
+
+定数は変更される事の無い値です
+
+ 1
+ "hello"
+ false
+ 1.3
+
+これらはリテラル定数と呼ばれ、それぞれを評価する値が定数そのものとなっています
+
+* 定数の型
+
+Go言語には以下の6種類のリテラル定数があります:
+
+- 整数型 定数 (uint8...uint64, int8...int64): `1`, `0`, `-6`, `9999999999999999999`, …
+- 浮動小数点数型 定数 (float32, float64,): `3.14`, `7.5e-2`, …
+- 虚数型 定数 (complex64, complex128): `1`-`0.707i`, …
+- 文字列型 定数 (string): `"Hello,`東京"`, … 
+- 文字 定数 (rune): `'a'`, `'す'`, `'シ'`, `'1'`, …
+- 理論値型 定数(bool): `true`, `false`
+
+* const
+
+定数を作るには、constを使います
+
+.play -edit src/const/const1/main.go /START OMIT/,/END OMIT/
+
+スライドの *Run* ボタンを押すことで実行できます
+
+- *Run* ボタンを押してみて何が起こるか確認してみてください
+- *Close* ボタンでWindowを閉じることができます
+
+また、スライド中のコードを編集することもできます
+
+- 名前を変更してみてください
+- Go言語のすべてのソースはUTF-8なので、日本語も使えます。
+- *Run* ボタンを押して結果を確認してみてください
+- 間違えた場合は、ページをリロードしてください
+
+* 識別子
+
+次に識別子についてお話しします
+
+Goの識別子は文字で始めなければいけません
+
+.play -edit src/identifier/identifier1/main.go /START OMIT/,/END OMIT/
+
+Unicode文字であれば、漢字、キリル文字、ラテン文字など様々な文字が使えます
+
+
+- 識別子はASCIIに限定されないため、コードの `students` を `学生` に変更し、*Run* を押してみてください
+- 間違えた場合は、ページをリロードしてください
+
+* 識別子 (続き)
+
+前述した通り識別子はUnicode文字か `_` で始まる必要があります
+
+数値は始まりには使えませんが、文字列中には使うことができます
+
+.play -edit src/identifier/identifier2/main.go /START OMIT/,/END OMIT/
+
+こちらに無効な識別子のサンプルがあります
+
+- プログラムが通るように識別子を変更してみてください
+- *Run* ボタンを押して結果を確認してみてください
+- 間違えた場合は、ページをリロードしてください
+
+* コメント
+
+Go言語では2種類のコメントをサポートしています
+
+- インラインコメントは、「//」で始まります
+- ブロックコメントは「 `/*` 」で始まり、「 `*/` 」で終わります
+
+.play -edit src/comments/comments1/main.go /START OMIT/,/END OMIT/
+
+コメントアウトされたコードはコンパイルまたは実行されません
+
+- このプログラムのコメントを削除してコンパイルします
+-  *Run* ボタンを押して結果を確認し、 `1`2`3` をコンパイルして出力します
+- 間違えた場合は、ページをリロードしてください
+
+* 宣言
+
+Goには6種類の宣言がありますが、すでにそれらのうちの1つを見てきました。
+
+以下6種類です:
+
+- `const`: 定数宣言
+- `var`: 変数宣言
+- `type`: 型宣言
+- `func`: メソッドの宣言
+- `package`: goソースが属するパッケージの宣言
+- `import`: importするパッケージの宣言
+
+このセクションでは定数以外の残りの5つの宣言についてそれぞれ説明します
+
+* 変数
+
+変数はミュータブルな値を保持します
+
+`var` を用いて新しい変数を宣言することができます
+
+.play -edit src/variable/variable1/main.go /START OMIT/,/END OMIT/
+
+定数と同じように、変数の識別子には任意の有効なUnicode文字を使うことができます
+
+- *Run* ボタンを押して結果を確認してみてください
+- 間違えた場合は、ページをリロードしてください
+
+_note_: 円周率の表示がおかしいですが、これは後で `fmt` パッケージを用いることで修正を行います
+
+* 未使用の変数宣言
+
+未使用の変数はバグの温床となります、そのため、Goコンパイラはあなたの関数スコープに定義されている変数が未使用の場合エラーを吐き出します
+
+変数が使用されていない場合は、それを削除するか、一時的に `_` という名前のマジック変数に代入してください
+
+.play -edit src/variable/variable2/main.go /START OMIT/,/END OMIT/
+
+このプログラムには4つの未使用変数があります
+
+- 下の2行のコメントを削除してプログラムを修正します
+- 「自転車」の宣言は、使用されていないので、削除またはコメントアウトします
+- *Run* ボタンを押して、プログラムがコンパイルされていることを確認します
+
+* 制御構文
+
+- _新しいint値xの宣言と値10の割り当て_
+- _xの値に4を足し、結果yへの格納_
+- _xが20より小さい間は、これらの処理を行う_
+
+Goにはいくつかの制御構文の種類があり、私達は既にいくつかの例を見ています。
+最も一般的な制御構文は:
+
+- 宣言: `const`pi`=`3.14159265359`, `type`Counter`int32`, …
+- 代入: `count`=`count`+`1`, …
+- インクリメント/デクリメント: `x++`, `y--`
+- 条件文: `if`…`{`…`}`else`{`…`}`, `switch`{`…`}`
+- ループ: `for`…`{`…`}`
+- 制御フロー: `break`, `fallthrough`, `continue`, `goto`, `return`.
+
+* 代入
+
+変数に保存された値を変更したい時に使い、 _代入_ と呼ばれます。
+
+.play -edit src/assignment/assignment1/main.go /START OMIT/,/END OMIT/
+
+この例では、以下を示します
+
+- *Run* を押し、プログラムが `1`, `2`, `4` を表示することをチェックして下さい。
+# - Update the program to declare a new variable, `z`, which has a value 2x larger than `y`.
+
+* 代入 (続き)
+
+_変数_ にのみ新しい値を代入することができます。
+
+.play -edit src/assignment/assignment2/main.go /START OMIT/,/END OMIT/
+
+定数に新しい値を代入するとシンタックスエラーになります。
+
+- *Run* を押し、プログラムがコンパイルできないことを見て下さい。
+- `x` の宣言を定数( `const` )から変数( `var` )に変更するために、サンプルコードを編集して下さい。
+- *Run* を押し、プログラムがコンパイルされ、正しい答えの2を表示することをチェックして下さい。
+
+* インクリメントとデクリメント
+
+Goは変数のポストインクリメントとポストデクリメントの限られた形式をサポートします。例. `x++`, `x--`.
+
+.play -edit src/increment/increment1/main.go /START OMIT/,/END OMIT/
+
+- *Run* を押し、プログラムが `2` を表示することを見て下さい。
+- サンプルコードを編集し、デクリメント演算子 `i--` を使用して、 `i` から `1` を減算してください。
+- *Run* を押し、プログラムがコンパイルされ、正しい答えの0を表示することをチェックして下さい。
+
+* インクリメントとデクリメント (続き)
+
+`i++` と `i--` は _命令文_ であり、 _式_ ではありません、それらは値を生成しません。
+
+.play -edit src/increment/increment2/main.go /START OMIT/,/END OMIT/
+
+このプログラムはシンタックスエラーになります。
+
+- サンプルコードを編集し、 `var`  `j` の宣言の上に `i++` 命令文を移動してエラーを訂正して下さい。
+- *Run* を押し、プログラムがコンパイルされ、正しい答えの2, 2を表示することをチェックして下さい。
+
+* ループ
+
+Goにはただ1つの `for` ループしかありません
+
+- `while` _条件_ `{`…`}`
+- `do`{`…`}`while` _条件_
+- `do`{`…`}`until` _条件_
+
+は次の1つの構文になります。
+
+- `for` _(init文)_; _条件_; _(post文)_ `{`…`}`
+
+`for` 文の宣言要素は:
+
+- init文: ループ変数の初期化に使用される; `i`=`0`.
+- 条件文: ループが完了したかどうかをテストに使用される; `i`<`10`, `true` はループの維持を意味します。
+- post文: ループ変数のインクリメントに使用される; `i++`, `i`=`i`-`1`.
+
+* ループ (続き) 
+
+ループの使用法を練習しましょう。
+
+.play -edit src/loops/loops1/main.go /START OMIT/,/END OMIT/
+
+このプログラムは `1` から `10` までをカウントします、 _偶数_ だけを表示するようにできますか？
+
+- プログラムを編集し、 `1` から `10` までの間の偶数を全て表示してください。
+- *Run* を押し、正しい答え( `2`, `4`, `6`, `8`, `10` )が表示されることをチェックして下さい。
+
+_note_: `for` の条件文の周りに `(` 括弧 `)` は必要なく、付けるとシンタックスエラーになります、やってみて下さい。
+
+* ループ (続き) 
+
+カウントダウンの練習をしましょう、これは他の言語で `while` ループを使う場所です。
+
+.play -edit src/loops/loops2/main.go /START OMIT/,/END OMIT/
+
+このプログラムは `10` から `1` までカウントダウンします、 `7` から `3` までのカウントダウンにできますか？
+
+- プログラムを編集し、 `7` から `3` までの数字だけを表示してください。
+- *Run* を押し、正しい答え( `7`, `6`, `5`, `4`, `3` )が表示されることをチェックして下さい。
+
+_note_: この `for` ループは _条件_ だけを持ち、 _init文_ と _post文_ はありません、そのためセミコロン `;` は必要ありません。
+
+* 条件文
+
+Goは `if` と `switch` の2つの条件文があります。
+
+`if` は _条件_ に基づいて2つの選択肢の中から選択するために使用されます。
+
+ if v > 0 {
+         println("v is greater than zero")
+ } else {
+         println("v is less than or equal to zero")
+ }
+
+Go言語では以下の様な使い方が多いです。
+
+ if err != nil {
+         // handle error
+         return
+ }
+ // do something
+
+* if
+
+先ほどの偶数の `for` ループの例を見てみましょう。
+
+.play -edit src/conditionals/conditionals1/main.go /START OMIT/,/END OMIT/
+
+このプログラムは `1` から `10` までをカウントします、 _偶数_ だけを表示するようにできますか？
+
+- `if`i%2`==`0`{` と `}` の行のコメントをはずし、 `1` から `10` までの間の偶数のみ表示するプログラムを作成して下さい。
+- *Run* を押し、正しい答え( `2`, `4`, `6`, `8`, `10` )が表示されることをチェックして下さい。
+
+_note_:  `%`  はGoの _剰余_ 演算子です。全ての偶数は `2` で割り切ることができ、 _剰余_ として `0` が残ります。
+
+* continue
+
+Javaのような言語とは異なり、Goの `if` 文は _ガード節_ としてよく使われます。
+
+`continue` を使い、ループの本体を _スキップ_ する事で以前のプログラムを書き直すことができます。
+
+.play -edit src/conditionals/conditionals2/main.go /START OMIT/,/END OMIT/
+
+- `if`i%1`==`1`{`, `continue`, `}` の行のコメントをはずして下さい。
+- *Run* を押し、正しい答え( `2`, `4`, `6`, `8`, `10` )が表示されることをチェックして下さい。
+
+* break
+
+`for` ループに条件式をつけなければ _無限ループ_ となります。
+
+`break` 文を使用して抜け出すことができます。
+
+.play -edit src/conditionals/conditionals3/main.go /START OMIT/,/END OMIT/
+
+- `if`i`>`10`{` `break` `}` の行のコメントをはずして下さい。
+- *Run* を押し、正しい答え( `2`, `4`, `6`, `8`, `10` )が表示されることをチェックして下さい。
+
+* 型推論
+
+これまでの例では、型についての話は避けて居ましたが、ここではGoの _型推論_ についてお話しします
+
+型推論を使用すると、宣言時に変数の型を省略できます。
+
+例:
+
+ var i = 7
+
+Goは `i` が `7` という値で宣言され、初期化されていることを知っているので、コンパイラは `i` の型を `int` と推定します。
+
+しかし、もし以下の場合は、
+
+ var s = "seven"
+
+Goは `s` が _文字列_  `"seven"` で初期化されていることを知っているので、コンパイラは `s` の型を `string` と推定します。
+
+* 明示的な型宣言
+
+場合によっては、Goに特定の型を使用するよう指示することもあります。
+
+これは、変数を宣言するときに行います:
+
+ var i int = 4
+ var s string = "おはようございます"
+
+これは、 `i` が明示的に `int` を値'7'として宣言していて、 `s` が `"おはようございます"` という値を持つ `string` を宣言していることをコンパイラに伝えます
+
+次のスライドでGoがサポートする型の種類について説明します。
+
+* 型
+
+Goは、Java, C, C++, Pythonのように強く型付けされた言語です。Goには9種類の型があり、それらは:
+
+- strings(文字列): `string`.
+- signed integers(符号あり整数): `int8`, `int16`, `int32`, `int64`.
+- unsigned integers(符号なし整数): `uint8`, `uint6`, `uint32`, `uint64`.
+- aliases(エイリアス): `byte`, `rune`, `int`, `uint`.
+- booleans(論理値): `bool`.
+- IEEE floating point(浮動小数): `float32`, `float64`.
+- Complex types(複素数型): `complex64`, `complex128`.
+- Compound types(複合型): `array`, `slice`, `map`, `struct`.
+- Pointer types(ポインタ型): `*int`, `*bytes.Buffer`.
+
+* 文字列型
+
+文字列は、Goプログラムで最も一般的なデータ型です。
+
+文字列型は、他の言語で予想されるように動作します。
+
+.play -edit src/strings/strings1/main.go /START OMIT/,/END OMIT/
+
+文字列は `+` 演算子で _連結_ することができます。
+
+- *Run* を押し、結果を見てください。
+
+_note_: Goでは空文字は `""` であり、 `null` や `nil` ではありません。
+
+* 整数型
+
+整数型は、Goで2番目に多く使用されます。
+
+整数型には _符号あり_ と _符号なし_ の2つの型があります。
+
+また、整数型はいくつかのサイズで表され、表現するビット数で表されます;
+
+- Signed integers(符号あり整数): `int8`, `int16`, `int32`, `int64`.
+- Unsigned integers(符号なし整数): `uint8`, `uint16`, `uint32`, `uint64`.
+
+Goには2つの整数型があります
+
+- `int` はプラットフォームに依存する `int32` または `int64` のエイリアスです。
+- `uint` はプラットフォームに依存する `uint32` または `uint64` のエイリアスです。
+
+そのサイズはGoプログラムをビルドするために使用したプラットフォームに依存します。
+
+* 整数型 (続き)
+
+なぜGoは非常に多くの種類の整数型をサポートしているのでしょうか？
+
+異なる _サイズ_ の整数型は、異なる数の範囲に対応できます。
+
+.play -edit src/types/types1/main.go /START OMIT/,/END OMIT/
+
+このプログラムには2つの型エラーが含まれています。
+
+- *Run* を押し、2つの型エラーを見てください。
+- 宣言された `x` と `y` の型を変更してプログラムを修正してください。
+- *Run* を押し、プログラムがコンパイルされ、正しい答えの `400` , `-7` を表示することをチェックして下さい。
+
+* 関数
+
+今度は _関数_ についてお話しましょう。
+
+あなたが書いたGoの全ては、関数で構成されています。実際には、あなたは始めから関数を書いています。
+
+.play -edit src/functions/functions1/main.go /START OMIT/,/END OMIT/
+
+これは前の例と同じプログラムで、以前は隠されていた _関数宣言_ を表示しています。
+
+- すべてのGoプログラムは `main` という関数で始まり、これを _main関数_ と呼びます。
+
+* func
+
+関数は `func` を用いて宣言することができます。
+
+関数の名前は `const` や `var` のように有効な識別子でなければなりません。
+
+.play -edit src/functions/functions2/main.go /START OMIT/,/END OMIT/
+
+このプログラムは `main` と `hello` という2つの関数を宣言しています。
+
+- `func`  `hello` 内の `println("こんにちは")` 文のコメントをはずして下さい。
+- *Run* を押し、こんちにはを3回表示することをチェックして下さい。
+
+_note_: `println` は提供されている _ビルトイン_ 関数です。宣言する必要はありません。
+
+* 関数パラメータ
+
+引数を関数に渡すには、引数の型と関数の _仮引数_ の型が同じでなければなりません。
+
+.play -edit src/functions/functions3/main.go /START OMIT/,/END OMIT/
+
+このプログラムでは、 `hello` に渡される引数の型が `name` パラメータの型と一致しません。
+
+- `hello` の宣言を修正して、パラメータの型が提供された引数の型と一致するようにしてください。
+- *Run* を押し、プログラムがコンパイルされ、 `こんにちは` `David` を表示することをチェックして下さい。
+
+* パッケージ
+
+パッケージとは、Goでソフトウェアを共有して再利用するユニットです。 
+すべてのGoコードはパッケージにまとめられています。
+
+パッケージ内の各ソースファイルは `package` 宣言で始まらなければなりません。
+
+パッケージの名前は、 `const`、`var`、 `func` 同様、有効な識別子でなければなりません。
+
+.play -edit src/packages/packages1/main.go
+
+これは前のスライドと同じ例で、 `package` 宣言を示しています
+
+`package`  `main` はプログラムのエントリポイント `func`  `main` を含むパッケージ名です
+
+* main packages
+
+このプログラムは間違った `package` 宣言を持っています
+
+.play -edit src/packages/packages2/main.go
+
+
+- *Run* を押し、コンパイルエラーを観察します
+- `package` 宣言を変更して、プログラムをコンパイルします
+- *Run* を押して、プログラムが挨拶を印刷するかどうかを確認します
+
+
+Goプログラムのmain関数はmainパッケージ中に存在しなければなりません
+
+* インポート
+
+`import` 宣言では、パッケージに他の _packages_ のコードを使用することができます。
+
+パッケージを `import` すると、 _public_ 型、関数、変数、型、および定数がパッケージ名の接頭辞とともに使用できます。
+
+time.Now	// timeパッケージのNow関数を示す
+
+
+ import "fmt"
+ import "time"
+
+or
+
+ import (
+         "fmt"
+         "time"
+ )
+
+どちらも `fmt` と `time` パッケージをインポートします。
+構文は異なりますが、等価です。
+
+* インポート (続き)
+
+`import` 宣言は、`package` 宣言の後、 `type`、 `const`、 `var`、または `func` 宣言の前に書かなければなりません
+
+.play -edit src/imports/imports1/main.go 
+
+`import` 宣言が間違った場所にあるので、このプログラムはコンパイルされません
+
+- `var`now` = `time.Now()`  `import` 宣言の後に移してください
+- *Run* を押して、プログラムが現在時刻を表示していることを確認します
+
+* インポート (続き)
+
+パッケージに _public_ と _private_ の両方のシンボルが含まれています。 また、これらをそれぞれ _exported_ と _not_exported_ と呼びます
+
+.play -edit src/imports/imports2/main.go 
+
+このプログラムは、2つの _private_ シンボルを参照するのでコンパイルされません。
+
+- `Println` と `Time` の大文字を使ってプログラムを修正してください。
+- *Run* を押して、プログラムが現在時刻を表示していることを確認します。
+
+_note_: このスライドを[[https://go-talks.golang.org/][gotalks.golang.org]]から実行している場合go-talkの制限により時間は `2009-11-10`23:00:00`+0000`UTC` となります。
+
+* fmt package
+
+このプログラムを覚えていますか？
+
+.play -edit src/imports/imports3/main.go
+
+ここでも `func`、`package` 、 `import` 宣言を示し、完全なGoプログラムになっています
+
+このプログラムは `fmt` パッケージの `Println` 関数も使用しています。これは組み込みの `println` 関数よりも優れています。
+
+- *Run* を押して、`fmt.Println` がこの出力をどのように出力するかを見てください。
+
+* 要約
+
+ここまででGo言語の初歩的な基本文法は学んだはずです
+
+コンテンツとしては以下の通りでしょう:
+
+- 定数と変数を宣言する方法
+- forループを書いて `if` を使う方法
+- タイプの仕組み
+- 独自の関数を書く方法
+- パッケージと `import` ステートメントがどのように機能するか
+
+
+* Advanced Syntax
+
+* Advanced Syntax
+
+このセクションでは基本文法で学んだ内容を踏まえて、より詳細に応用的な文法について見ていきましょう
+
+このセクションでは、ソースコードが長くなる部分があるため一部Go言語のオンラインエディターであるGo Playgroundを仕様して演習を行っていきます
+
+* コードフォーマット
+
+すべてのGoコードは、単一のスタイルガイドに従ってフォーマットされ、 `gofmt` というツールで実行されます
+
+単一のスタイルガイドに則ってコードがフォーマットされている事により、Goのコードは高い可読性を持ち、コードのスタイルガイドを選定する時間を節約することができます。
+
+"Gofmtのスタイルは誰もお気に入りではありませんが、誰もが気にいるでしょう"
+.caption [[https://go-proverbs.github.io/][Go Proverb]].
+
+Go Playgroundでは標準的なGofmtのスタイルガイドにのっとってコードをフォーマットできます
+
+- [[https://play.golang.org/p/0Hz57BQdTA][こちら]] のリンクへ行き *Format* ボタンを押してください
+
+* ゼロ値
+
+前の例では、このようなコードを書いています
+
+ var name = "go"
+ var counter = 1
+
+
+_宣言_ と _初期化_ の両方がそれぞれ変数 `counter` と `name` です。このようなコードは何が起こるでしょうか
+
+.play -edit src/zerovalue/zerovalue1/main.go
+
+- *Run* ボタンを押して結果を確認してみてください
+
+* ゼロ値 (続き)
+
+Go言語では初期化されていないメモリは存在しません。Go言語ランタイムは各変数に割り当てられたメモリを使用前に必ず初期化する事を保証しています。
+
+以下のようなコードを書いた場合
+
+ var name string
+ var counter int
+
+宣言時の `name` と `counter` のメモリは初期化されていないため、ゼロとなっています。
+
+- `name` の値は長さがゼロの文字列の値なので `""` になります。
+- `counter` の値はゼロになります。なぜなら、そのメモリ位置に `0` を書き込んだ場合、それが `int` の値であるからです
+
+* ゼロ値 (続き)
+
+Goには、以下の様に各型に関連付けられた _ゼロ値_ があります
+
+- 整数型のゼロ値: `int` 、 `int8` 、 `uint` 、 `uint64` などは `0` です
+- float32型、float64型、complex128型などの浮動小数点型のゼロ値は「0.0」です
+- 配列のゼロ値は各要素のゼロ値です。 `[3]int` は `0`、 `0`、 `0` です
+- スライスのゼロ値は `nil` です
+- structsのゼロ値は、各フィールドのゼロ値です
+
+* 等価性
+
+Goは厳密に型指付けされた言語であるため、2つの変数が等しくなるためには、
+ _型とその値の大きさ_ も同じでなければなりません
+
+_異なる_ タイプの2つの変数を比較しようとすると、実行時に検出されます。
+
+.play -edit src/equality/equality1/main.go
+
+- *Run* ボタンを押して結果を確認してみてください
+- `x` と `y` を _同じ_ 型と宣言してプログラムを修正してください。
+- *Run* ボタンを押してプログラムが `true` を出力することを確認します
+
+* 型変換
+
+Go言語では整数型に種類があり、ある型から別の型に _キャスト_ する事ができます
+
+この式は `T(v)` により `v` という変数を `T` に型変換しています
+
+.play -edit src/types/types2/main.go
+
+この例では、 `y` = `x` は `x` と `y` の型が一致しないためこのコードは失敗します
+
+- *Run* ボタンを押して結果を確認してみてください
+- プログラム中の `x` を `int(x)` を用いることでキャストしてください
+- そして *Run* ボタンを押し、 `700` という数字が出力されることを確認してください
+
+* 型変換 (続き)
+
+_異なる長さ_ の変数がある場合、あるタイプから別のタイプへ _変換_ することができます。
+
+.play -edit src/types/types3/main.go
+
+- *Run* ボタンを押して結果を確認してみてください
+- プログラムの `x` を `int64` にするために `int64(x)` として変換してください
+- *Run* ボタンを押して `32000` が表示されることを確認してください
+
+* 型変換 (続き)
+
+逆に、より広い型をより狭い型に変換することができます。
+
+.play -edit src/types/types4/main.go
+
+- *Run* ボタンを押して結果を確認してみてください
+- 意図した答えが表示されましたか？
+- プログラムの `y` の部分を `int32` に変更してください
+- *Run* ボタンを押し `64000` が表示されることを確認してください
+
+* オーバーフロー
+
+Goで変数を宣言する際に消費するとされるメモリのビット長を選択する必要があります
+
+_小さな_ ビット数の変数を大きなビット数の変数に変換すると、これらはすべて収まるため、問題ありません
+
+_より大きな_ ビット数の変数を小さいビット数の変数に変換すると、そのビットを使用できるビット数が少なくなるため、切り捨てられる危険性があります
+
+- [[https://play.golang.org/p/NbNwRjbmRu][こちら]] のリンクへ行き *Run* をクリックし、何が表示されるか確認してください
+- `x` の値を減らしてプログラムを修正してください
+- ヒント: 値は33,000未満である必要があります
+- *Run* ボタンを押して `y` が正しく出力されることを確認してください
+
+* 短縮宣言
+
+Goには変数を宣言するいくつかの方法があります。これらの3つはすべて同じです
+
+ var x = 0
+ var x int = 0
+ var x int
+
+RubyやPythonのような言語に慣れている人は、より簡潔に書く事が出来るかと思うかもしれませんが、確かにできます
+
+ x := 0
+
+これは _short_declaration_ と呼ばれる記述法です
+ 
+ var x int = 0
+
+短縮宣言はGoの様々なソースで見られる宣言なので、少し練習をしましょう
+
+* 短縮宣言 (続き)
+
+一般的に短縮宣言は下記のような `for` ループなどでよく使われています
+
+ var i int
+ for i = 1; i < 11; i++ {
+         fmt.Println(i)
+ }
+
+上記の場合、短縮宣言を使って以下のように書くこともできます
+
+ for i := 1; i < 11; i++ {
+         fmt.Println(i)
+ }
+
+[[https://play.golang.org/p/3Vl75w72JO][こちら]] のプログラムには2つの `var` 宣言と2つの `for` ループが存在しています
+
+- [[https://play.golang.org/p/3Vl75w72JO][リンク]] へ行き *Run* ボタンを押して実行してみてください
+- そして短縮宣言をつかって `var` を `:=` に書き換えてみてください
+
+* スライス
+
+次に学ぶべき型は _スライス_ です
+
+スライスは _単一_ の型の順序付けられた値の集合です
+
+スライスは他の型の宣言と同様に定義することができます
+
+ var i int      // int 型の i を宣言
+ var j []int    // int 型スライスの j を宣言
+
+この例では
+
+- `i` は `int` 型です
+- `j` は `[]int` 型です、これは `int` のスライスを指しています
+
+SliceはGo言語に於いて大変重要な要素の一つなので、少し詳しく見ていきましょう
+
+_note_ : スライスは配列とは異なるデータ型です、Go言語では配列もサポートしていますが、一般的に多用されるのはスライスのため、現時点では配列の話は説明しません 
+
+* スライスの大きさ
+
+`[]int` を用いてスライスを宣言する場合、どれぐらいの要素を格納できるのでしょうか？
+
+スライスの初期値は _zero_value_ のため、初期スライスは空です、つまり _length_ が0で0個の要素を保持できます。
+
+.play -edit src/slices/slices1/main.go
+
+組み込みの `len` 関数を用いることでスライスの長さを調べることができます
+
+- *Run* ボタンを押して結果を確認してみてください
+- 正しい答えを予測できましたか？
+
+* スライスの宣言
+
+組み込みの `make` 関数をつかって値を保持することができる、スライスを作成することができます
+
+.play -edit src/slices/slices2/main.go
+
+この例では、1行目の `var` `i` `[]int` では `i` を `int` のスライスとして宣言しています
+
+2行目では `i` は `make([]int,` `20)` の結果としてわり当てられています
+
+- *Run* ボタンを押して結果を確認してみてください
+- 正しい答えを予測できましたか？
+
+* スライスの宣言 (続き)
+
+`make` と _短縮宣言_ を組み合わせてスライスを宣言することが一般的です
+
+.play -edit src/slices/slices3/main.go
+
+この例では `i` が長さ20の `int` 型のスライスであることを宣言しています
+
+- *Run* ボタンを押して結果を確認してみてください
+- `fmt.Println(len(i))` の結果は想定通りでしたか？
+
+* スライスの練習
+
+スライスを使いこなすために、少しスライスについて練習しましょう
+
+.play -edit src/slices/slices4/main.go
+
+- [[https://play.golang.org/p/AJk1Jgp1iE][こちら]] のリンクへ行き、手順どうりに編集してみてください
+- 長さが5の `int` 型のスライス `i` を宣言してください
+- 長さが9の `float64` 型のスライス `f` を宣言してください
+- 長さが4の `string` 型のスライス `s` を宣言してください
+- 実行結果に `5`9`4` が表示されましたか？
+
+* スライスのインデックス
+
+スライスの `i` 番目の要素へのアクセスや割り当てには `s[i]` という形式を使います
+
+スライスはゼロでインデックス付けされているので、
+`s[0]` は第1要素、 `s[1]` は第2要素ととなります
+
+インデックスを指定して代入を行うと、値の割り当てを行うことができます
+
+ s[7] = 20
+
+上記の例では、スライス `s` のインデックス7である8番目の要素に20という値を割り当てています
+
+インデックスを指定して扱うと値を取り出すことができます。
+
+ x := s[7]
+
+上記の例では、スライス `s` の8番目の要素を取得して `x` に代入を行っています
+
+* 空のスライス
+
+これまでに空のスライスを見てきました
+
+ var s []int
+
+このような空のスライスの `length` はゼロです
+
+それでは `make` で初期化されたスライスの各要素の値はなんだと思いますか？
+
+.play -edit src/slices/slices5/main.go
+
+- [[https://play.golang.org/p/kGh_C1l6KW][こちら]] のリンクへ行き、 *Run* ボタンを押してください
+- 期待通りの動作をしましたか？
+
+* スライスの初期化
+
+あなたが宣言時に10個の要素を持つ `[]int` スライスを作りたい場合はどうすればいいと思いますか？
+
+解決策の一つとしては、スライスの各要素に値を割り当てることです
+
+.play -edit src/slices/slices6/main.go
+
+* スライスの初期化 (続き)
+
+しかしこんな冗長的な事を行っていては要素数が50個などになったときにめんどくさくて対応できません
+
+Go言語では、スライスを宣言すると同時に、初期化を行う方法があります
+
+.play -edit src/slices/slices7/main.go
+
+この構文は、複合リテラルと呼ばれます
+
+- *Run* ボタンを押して結果を確認してみてください
+
+* append
+
+これまで、既知の長さのスライスを使ってきましたが、組み込み関数である `append` を使う事によってスライスの内容を拡張する事ができます
+
+.play -edit src/slices/slices8/main.go
+
+`append` 拡張される項目に対応するようにスライス長を増やし、新しいスライス値を返します
+
+`append` を使う事で一つの命令で複数の値を追加する事もできます
+
+.link https://blog.golang.org/slices Further reading: Arrays, slices (and strings): The mechanics of 'append' (blog.golang.org)
+
+* サブスライス
+
+大きなスライスの一部だけを参照したい場合は _サブスライス_ を使ってください
+
+サブスライスは、スライスインデックスの範囲を参照を除いて、少し前のスライドで見た _インデックス_ 操作に似ています。
+
+.play -edit src/slices/slices12/main.go
+
+`brothers[0:3]` は、1から3番目の [[https://en.wikipedia.org/wiki/Marx_Brothers][マルクス・ブラザース]] のスライスとなります。
+
+* サブスライス (続き)
+
+サブスライスを使う場合、両方のスライスが _同一の_ データを参照していることです。
+
+.play -edit src/slices/slices10/main.go
+
+2つの独立したスライス値を作成するには、 `copy` 関数を使用します。
+
+* 境界チェック
+
+誤ってスライスの範囲を超えた場合はどうなるでしょうか？
+
+.play -edit src/slices/slices11/main.go
+
+- *Run* ボタンを押して結果を確認してみてください
+- `fmt.Println(primes[-1])` をコメントアウトし、何が起こるか見て下さい。
+
+* 複数の代入
+
+Goは、1つの命令文での複数の代入と宣言を許可しています。
+
+例えば、`x`, `y`, `z` をそれぞれ `1`, `2`, `3` と宣言したいとしたら、以下のように書きます
+
+ var x = 1
+ var y = 2
+ var z = 3
+
+同じことを以下のように書くことができます
+
+ var x, y, z = 1, 2, 3
+
+- 複数の宣言のいくつかの例については [[https://play.golang.org/p/d2hDJQAfkt][こちら]] のリンクへアクセスしください
+
+* 複数の戻り値
+
+関数から複数の値を返すことができるので、複数の代入は重要です。
+
+ func f(i int)
+
+これは `f` の関数宣言で、一つの引数 `int` をとります。
+
+ func g(i int, j int, k string) int
+
+これは `g` の関数宣言で、2つの `int` と 1つの `string` の3つの引数をとり、 `int` を返します。
+
+ func h(i, j int) (int, int, string)
+
+これは `h` の関数宣言で、2つの `int` 引数をとり、2つの `int` と 1つの `string` の3つの値を返します。
+
+* 複数の戻り値 (続き)
+
+プログラムは、関数シグネチャで指定された値の数を返さなければなりません。
+
+.play -edit src/functions/functions4/main.go
+
+* 複数の戻り値の代入
+
+複数の値を返す関数を呼び出すときは、それらの _全て_ を代入する、またはしない必要があります。
+
+ func f() (int, bool, string)
+
+ func main() {
+         a, b, c := f()
+         fmt.Println(a, b, c)
+ }
+
+`f` は3つの値を返すので、短い宣言構文を使ってそれらを `a`, `b`, `c` に代入します。
+
+最初の値と3番目の値だけを使いたい場合は、2番目の値をアンダースコア変数 `_` に代入することで無視することができます。
+
+ func main() {
+         a, _, c := f()
+         fmt.Println(a, c)
+ }
+
+* マップ
+
+Goにはハッシュマップ型が組み込まれており、 `map` と呼ばれます。
+
+型Vの値をキー型Kの値にマップします。
+
+ var m map[string]int
+
+スライスを作成するのと同じように、ビルトインの `make` でマップを作成します。
+
+.play -edit src/maps/maps1/main.go
+
+* マップへの値の挿入
+
+マップに値を挿入することは、スライス要素に値を代入するのと同じように見えます。
+
+.play -edit src/maps/maps2/main.go
+
+そのキーを持つエントリがすでに存在する場合は、上書きされます。
+
+- [[https://play.golang.org/p/a-V5I0nZ5l][こちら]] のリンクへアクセスし、演習を完了してください。
+
+_note_: Go言語のマップは常に _順不同_ です。
+
+* コンパクトなリテラル初期化
+
+スライスと同じように、マップは宣言と初期化を行う、コンパクトなリテラル初期化をサポートしています。
+
+.play -edit src/maps/maps3/main.go
+
+* マップからの値の取得
+
+スライスのように、 `m[key]` という構文でマップに格納された値を取得することができます。
+
+存在する場合は値が返され、そうでなければ _ゼロ値_ が返されます。
+
+.play -edit src/maps/maps4/main.go
+
+* マップ値が存在するかの確認
+
+前のスライドでは、 `moons["Neptune"]` が `0` を返しました。
+
+ネプチューンに実際に月がないからか、あるいはネプチューンのエントリがないために `0` が返されたかどちらなのかを知るにはどうすればいいでしょうか？
+
+マップのルックアップは第2の構文をサポートします。
+
+.play -edit src/maps/maps5/main.go
+
+* マップからの値の削除
+
+マップから値を削除するには、ビルトインの `delete` 関数を使います。
+
+.play -edit src/maps/maps6/main.go
+
+* マップのイテレート
+
+マップ内のすべての値を出力したい場合は、 `range` と呼ばれる `for` 構文の形式を使用できます。
+
+.play -edit src/range/range1/main.go
+
+`range` はマップの各エントリをループし、mapキーを `name` に代入し、map値を `pop` に代入します。
+
+* スライスのイテレート
+
+`for`range` はマップで使用できますが、スライスでも利用できます。
+
+.play -edit src/range/range2/main.go
+
+- [[https://play.golang.org/p/qZWMUyYcrK][こちら]] のリンクへアクセスし、演習を完了してください。
+- わからなくても心配しないでください、次のスライドに答えがあります。
+
+* Switch
+
+これまでの演習を参考にしたのであれば、このように書いているかもしれません
+
+.play -edit src/range/range2a/main.go /START OMIT/,/END OMIT/
+
+Goでは、重く入れ子にされた `if`else`if` ブロックはやる気を削ぎます。
+
+代わりに、他の条件文 `switch` を使うことができます。
+
+* Switch (続き)
+
+`switch` を用いることで以下のようにシンプルに記述できます
+
+.play -edit src/switch/switch1/main.go /START OMIT/,/END OMIT/
+
+
+* 構造体
+
+これまでは、 _プリミティブ_ 型と _スライス_ 型の2つの型について説明しました。
+
+Goは、_複合_ 型と呼ばれるもの、つまり他の型で _構成される_ 型をサポートしています。
+
+これらは _構造体_ 型と呼ばれ、次のように宣言します:
+
+ type Point struct {
+          X int
+          Y int
+ }
+
+`Point` 構造体はint型の `X` と `Y` の2つのフィールドを持っています。
+
+- 完全な例は [[https://play.golang.org/p/fAnPV1MojK][こちら]] リンクにあります
+
+* メソッド
+
+Goでは、型に関数をアタッチすることができます。これは _メソッド_ と呼ばれます。
+
+ type Point struct { X, Y int }
+
+ func (p Point) String() string {
+          return fmt.Sprintf("point: x=%d, y=%d", p.X, p.Y)
+ }
+
+この例ではPoint構造体型は `String()`string` メソッドを実装しています。
+
+ (p Point)
+
+上記はレシーバーと言われます
+
+* ポインタ
+
+関数またはメソッドに値を渡すたびに、値がコピーされます。
+
+Goでは、メソッドのレシーバーも値のため、メソッドを呼び出すとコピーされます。
+
+.play -edit src/pointers/pointers1.go /START OMIT/,/END OMIT/
+
+`Move` メソッドのレシーバーをポインタに書き換えて実行してみてください
+
+* インタフェース
+
+Goはオブジェクト指向言語です。型についてはメソッドがありますが、Goは継承またはサブクラスをサポートしていません。
+
+Goはポリモーフィズム、 _has_a_ （ _is_a_ ではない）を _インタフェース_ でサポートしています。
+
+インタフェース宣言は次のようになります:
+
+ type Reader interface { 
+          Read(buf []byte) (int, error) 
+ }
+
+これは、 [[https://golang.org/pkg/io/][`io`]] パッケージからの [[https://golang.org/pkg/io/#Reader][`io.Reader`]] インタフェース宣言です。
+
+Goのインタフェースの実装には _implements_ などの明示的なキーワードはなく、インタフェースに定義されている正しいメソッドセットを実装されている型をインタフェースを実装していると見なします。
+
+* エラーハンドリング
+
+おそらく、Go標準ライブラリのメソッドと関数の多くが `error` 型の値を返すことに気づいたでしょう。
+
+`error` は `int`, `string` などと同じ _宣言された型_ です。
+
+`error` はインタフェースです。宣言は
+
+ type error interface {
+         Error() string
+ }
+
+`Error()`string` メソッドを持つ型は、 `error` インタフェースを _実装_ します。
+
+* Nil
+
+`nil` はGo言語でいうところの `NULL`, `null`, `void` です。
+
+- インタフェース型のゼロ値は `nil` です
+- ポインタ型のゼロ値は `nil` です
+
+Goは `error` インタフェースと単純な規約を使ってエラー処理を実装しています。
+
+- エラーが発生しなければ、関数またはメソッドから返された `err` 値はnilに等しくなります。
+- エラーが発生した場合、関数またはメソッドから返された `err` 値はnilと等しくなりません。
+
+ if err != nil {
+          // cleanup and handle error
+ }
+
+* defer
+
+メソッドを抜ける時に必ず処理したいケースがある場合 (File I/O , DB close, など...)
+
+Goには `defer` キーワードがあり、メソッド終了時に実行されることが _常に_ 保証されています。
+
+.play -edit src/defer/defer1.go /START OMIT/,/END OMIT/
+
+- *Run* ボタンを押して結果を確認してみてください
+
+_note_: `os.Exit` された場合は実行されません
+
+* goroutine
+
+冒頭ではGo言語は優れた並行処理機構を持っているとお話ししました、
+その一つが `goroutine` です。
+
+`goroutine` は `go` 宣言で実行する事ができます
+
+.play -edit src/goroutine/goroutine.go /START OMIT/,/END OMIT/
+
+- *Run* ボタンを押して結果を確認してみてください
+
+* channel
+
+優れた並行処理をサポートーしている機能のもう一つが `channel` です
+
+`channel` は `make` を使って宣言します
+
+.play -edit src/channel/channel1.go /START OMIT/,/END OMIT/
+
+- *Run* ボタンを押して結果を確認してみてください
+
+* buffered channel
+
+前のスライドでは `channel` に値が入っている状態で値を送ろうとすると `channel` から値を取り出すまで処理がブロックしてしまっていました。
+
+その対策として、Goには `channel` にバッファを有した `buffered` `channel` があり、 `make` に長さを付与することで宣言します
+.play -edit src/channel/channel2.go /START OMIT/,/END OMIT/
+
+- *Run* ボタンを押して結果を確認してみてください
+
+* select
+
+`buffered` `channel` を使い、 `channel` のブロックを制御してきましたが、受信側もまた、値の受け取りを待ち受けていてブロックしている状態になっています。
+
+Go言語では `select` を使うことで、受信時のブロックを制御することができます。
+
+.play -edit src/select/select.go /START OMIT/,/END OMIT/
+
+- *Run* ボタンを押して結果を確認してみてください
+- channelへの送信をコメントアウトしてください
+- 再度 *Run* ボタンを押して結果を確認してみてください
+
+* fmt
+
+fmtパッケージについて説明して、このセクションを終了しましょう。
+
+`fmt` はフォーマットされた表示のための標準です。その名前はGoのPlan 9の遺産を引き継いでいます。
+
+この時点までは `fmt.Println` を多用していますが、 `fmt` パッケージには他にも多くの便利な機能があります。
+
+`fmt.Printf` に注目すると、 `f` は _formatted_output_ の略です。
+
+ここに例があります
+
+.play -edit src/fmt/fmt1/main.go /START OMIT/,/END OMIT/
+
+- *Run* ボタンを押して結果を確認してみてください
+
+* フォーマット指定子
+
+PythonやCのような言語に慣れているなら、おそらく _フォーマット指定子_ に慣れているでしょう。
+
+`fmt` パッケージは、多数のフォーマット指定子をサポートしています。前の例では、それぞれ `string` と `int` に対して `%s` と `%d` でした。
+
+`fmt` パッケージは、間違ったフォーマット指定子を使用した場合や、 `fmt.Printf` に十分な引数を与えていない場合を見分けられるぐらいスマートです。
+
+.play -edit src/fmt/fmt2/main.go /START OMIT/,/END OMIT/
+
+* フォーマット指定子 (続き)
+
+表示したい値の型に合った正しい指定子を選ぶのはうんざりです。
+
+単純な場合に `fmt.Printf`を使いやすくするために、 _どんな_ 値でも出力することができる `％v` 指定子を使うことができます。
+
+.play -edit src/fmt/fmt3/main.go /START OMIT/,/END OMIT/
+
+- [[https://play.golang.org/p/B-E7JOJ1Db][こちら]] のリンクへアクセスし、さらにいくつかのフォーマット指定子を試してください。
+
+* 要約
+
+ここまででGoの基本的な文法は網羅できているかと思います。
+
+- Goコードのフォーマット方法
+- ゼロ値がどんなもので、どのように動作するか
+- 等価と型交換
+- 短い宣言構文
+- 複数の代入
+- スライス・マップの仕組み
+- 構造体
+- メソッド
+- インタフェース
+- 並行処理
+- `fmt` パッケージの仕組み
+
+
+* 開発環境とツール
+
+* 開発環境とツール
+
+このセクションでは開発方法に取り組みます。
+
+- Goのインストール
+- エディタ / IDE の紹介
+- `$GOPATH` ワークスペースの設定
+- `go` コマンドの概要
+
+* Goのインストール
+
+次の数枚のスライドでは、さまざまなシステムにGoをインストールする方法の例を示します。
+
+公式のインストールドキュメントはこちら:
+
+.link https://golang.org/doc/install
+
+Goの現在のバージョンは 1.8 です
+
+- 新しいマイナーリリース、Go 1.9、Go 2.0などは、年2回リリースです。
+- 過去には6ヶ月ごとに2〜4個のバグフィックスまたはセキュリティリリースが発生しています。
+
+* OS X でのGoのインストール
+
+OS X ( `darwin` とも呼ばれる)でのGoのインストール方法
+
+*Mac*OS*Installer*
+
+Goプロジェクトが提供する `.pkg` インストーラを使用する場合は、
+
+.link https://storage.googleapis.com/golang/go1.8.darwin-amd64.pkg
+
+*Homebrew*
+
+Macのサードパーティソフトウェアを管理するHomebrewを使用する場合は、
+
+ brew install golang
+
+*MacPorts*
+
+Macのサードパーティソフトウェアを管理するMacPortsを使用する場合は、
+
+ sudo port install go
+
+* Windows でのGoのインストール
+
+*MSI*Installer*
+
+Goプロジェクトが提供する32bit版と64bit版のWindows用の `.msi` インストーラを使用する場合は、
+
+.link https://storage.googleapis.com/golang/go1.8.windows-amd64.msi Windows 64bit MSI installer
+.link https://storage.googleapis.com/golang/go1.8.windows-386.msi Windows 32bit MSI installer
+
+*.zip*file*
+
+Goプロジェクトが提供するGoコンパイラと標準ライブラリの `.zip` ファイルを使用する場合は、
+
+.link https://storage.googleapis.com/golang/go1.8.windows-amd64.zip Windows 64bit zip file
+.link https://storage.googleapis.com/golang/go1.8.windows-386.zip Windows 32bit zip file
+
+zipファイルを解凍し、 `C:\Go` に置きます。
+
+* Linux でのGoのインストール
+
+あなたのLinuxディストリビューションによっては、Goの最新バージョンがあるかもしれませんが、これはまれです。
+
+Goの最新バージョンをインストールする最も信頼性の高い方法は、
+
+.link https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz
+
+を以下のディレクトリにuntarすることです
+
+ /usr/local
+
+そして、 
+ 
+ /usr/local/go/bin
+
+をあなたの `$PATH` に追加してください
+
+ echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bash_profile
+
+* Go tool
+
+Goのインストールには、 `go` toolと呼ばれるツールが付属しています。
+
+`go` toolは以下のことができます
+
+- プログラムのコンパイル
+- テストの実行
+- パッケージのドキュメントの表示
+- インターネットからパッケージを取得する
+
+* $GOPATH
+
+`go` toolは、あなたのGoソースコードが _すべて_ 格納されているワークスペースの中で動作します。
+
+このワークショップのソースコードはすべてこのリポジトリに含まれています。
+
+`$GOPATH` をこのリポジトリをチェックアウトしたベースディレクトリに設定することができます。例えば、
+
+ % export GOPATH=$HOME/go-handson
+
+ワークスペースを使用すると、固定名で他のパッケージからコードをインポートすることができます。例えば、
+
+ import "github.com/pkg/profile"
+
+は、以下に格納されている `profile` パッケージのコードをインポートします。
+
+ $GOPATH/src/github.com/pkg/profile
+
+* go build
+
+Goはコンパイル言語なので、通常のワークフローは
+
+- コードを書く
+- `go`build`
+- プログラムを実行
+
+Goプログラムをビルドしてみましょう
+
+- `cd`$GOPATH/src/helloworld`
+- `hello.go` のソースコードを読んでください
+- `go`build` でソースコードをビルドしてください
+- `./helloworld` でプログラムを実行してください
+
+* What time is it (演習)
+
+時計を書いてみましょう。現在の時刻を表示するプログラムです。
+
+- `cd`$GOPATH/src/whattimeisit`
+- `main.go` を編集し、プログラムを終了してください (もし行き詰まったら答えは `answer.go` にあります)
+- `go`build` でプログラムをビルドしてください (もしエラーが出たら、戻って `main.go` を編集してください)
+- `./whattimeisit` でプログラムを実行してください、以下のようなものを表示するはずです
+
+ The current time is 2016-12-05 12:33:18.222821474 +0900 JST
+
+* テスト
+
+残りの日はテストを使ってcode katas(訳注:プログラミング演習)を完成させたいので、テストについて時間を費やしたい。
+
+testingパッケージには、godocで表示されるexampleとベンチマーク関数も含まれています。
+
+あなたが書くパッケージごとにテストを含めるべきです。
+
+`testing` パッケージは _単体テスト_ には理想的です。機能テストの場合は _ok_ ですが、複雑な統合テストにはあまり適していません。
+
+* go test
+
+`go`test` はGo標準ライブラリに組み込まれたユニットテストフレームワークです。 `testing` パッケージに入っています。
+
+テストは `_test.go` ファイルにあります。例えば `strings` パッケージには次のファイルがあります:
+
+- `strings.go` UTF-8でエンコードされた文字列を操作するための関数
+- `strings_test.go` `strings` パッケージのテスト
+
+それぞれのテストは関数形式です
+
+ func TestNameOfTest(t *testing.T) { ... }
+
+- `NameOfTest` はあなたのテストの名前です。それは _必ず_ 大文字で始まります。
+- テスト関数は `t.Error` や `t.Fail` のようなヘルパーを提供する `testing.T` 値を取ります。
+
+* テストを書く
+
+`simplestrings` と呼ばれる独自のバージョンのstringsパッケージを使っていくつかのテストを書いてみましょう。
+
+- この演習のコードは `$GOPATH/src/simplestrings/` にあります
+- `simplestrings.go` のソースコードを読んでください
+
+一緒に関数のテストを `simpleestrings` パッケージに書きます。
+
+テストカバレッジ（次のスライドを参照）ツールを使用して作業を確認していきます。
+
+* テストカバレッジ
+
+`go`test` はカバレッジを報告できます
+
+ go test -coverprofile=cover.out
+
+これは、カバレッジファイル `cover.out` を生成します。
+
+- `go`tool`cover`-func=cover.out` はカバレッジレポートを表示します
+- `go`tool`cover`-html=cover.out` はレポートをブラウザで開きます
+
+_Protip_: 私はより簡単にするため、これらの小さなシェル関数を使います
+
+ cover () {
+   t=$(mktemp -t cover)
+   go test $COVERFLAGS -coverprofile=$t $@ && go tool cover -func=$t && unlink $t
+ }
+
+ cover-web() {
+   t=$(mktemp -t cover)
+   go test $COVERFLAGS -coverprofile=$t $@ && go tool cover -html=$t && unlink $t
+ }
+
+* 標準ライブラリ
+
+Goはパッケージの豊富な標準ライブラリを同梱しています。これは以下を含んでいます
+
+- file input / output
+- string handling
+- compression
+- encoding and decoding of JSON and XML
+- network handling
+- HTTP client and server
+
+* Katas
+
+今日の残りの時間は一緒にGoコードを書く練習をしましょう。
+
+Rubyコミュニティには、テストパスを行うための小さな演習の _code_katas_ という伝統があります。
+
+katasを通して作業するときに、Go標準ライブラリのいくつかをさらに訪れます。
+
+* 文字列フォーマット
+
+ウォームアップとして、一緒に小さなkataをしましょう。
+
+このkataのコードは `$GOPATH/src/katas/sprintf` にあります。
+
+もし行き詰まったら、答えは `$GOPATH/src/katas/sprintf/answers_test.go` にあります。
+
+* Reading input
+
+このkataは、io.Readerから行を読み込み、読み込まれたすべての行を含む文字列を返す関数を記述するように要求します。
+
+このkataのコードは `$GOPATH/src/katas/input` にあります
+
+* Readers
+
+`io` パッケージで利用可能な `io.Reader` 実装を習熟するために、このkataはすべてReaderに関するものです。
+
+- `$GOPATH/src/katas/readers` でテストをパスしてkataを完成させてください。
+- もし行き詰まったら、 [[https://golang.org/pkg/io/][`io`]] パッケージのドキュメントを参照してください。
+
+* ファイル内の行数を数える
+
+今、私達は `io.Reader`, `error` について知っているので、もっと便利なプログラムを書くことができます。
+
+このkataのコードは `$GOPATH/src/katas/countlines` にあります
+
+_Note_:
+
+- `go`test` は常にパッケージのソースディレクトリから実行されます。これによりテスト用のフィクスチャを簡単に組み込むことができます。
+- go toolは `testdata` と呼ばれるディレクトリ、 `.` または `_` で始まるディレクトリを無視します。
+
+* エラーハンドリング (続き)
+
+以前のカウンティングサンプルでは、エラーが発生した場合、プログラムは終了します。
+
+このkataでは、エラーを呼び出し側に返すことでエラーを処理します。
+
+このkataのコードは `$GOPATH/src/katas/errorhandling` にあります
+
+* Passing in a reader
+
+プログラム中の `Countlines` 関数を消しましょう。
+
+このkataのコードは `$GOPATH/src/katas/linecount` にあります
+
+stdin経由で送られた行数が読み込まれるようにプログラムを完成させてください。
+
+ % cat testdata/moby.txt | ./linecount 
+ 22659
+
+* 複数のファイルの処理
+
+`linecount` プログラムを拡張して、コマンドラインで渡されるファイルを処理しましょう。
+
+このkataのコードは `$GOPATH/src/katas/countmanyfiles` にあります
+
+コマンドラインで渡されたファイルの行数をカウントするようにプログラムを完成させてください。
+
+ % ./countmanyfiles testdata/*.txt
+ testdata/dracula.txt    15973
+ testdata/pride-and-prejudice.txt        13427
+ testdata/sherlock.txt   13052
+
+* ディレクトリ内のすべての* .txtファイルを読み込む
+
+前の例では、処理するファイルを一覧表示するためにシェルを使用しました。
+
+このkataでは、ディレクトリリスト自体を探索するために、 `countmanyfiles` プログラムを拡張しましょう。
+
+これを行うには、 [[https://golang.org/pkg/os/#File][`os.File`]] の [[https://golang.org/pkg/os/#File.Readdir][`ReadDir`]] メソッドを使用します
+
+_Note_: ディレクトリではなく、 _ファイル_ だけを読むよう注意し、 `.txt` で終わらないファイルは読まないようにしてください
+
+このkataのコードは `$GOPATH/src/katas/countdir` にあります
+
+コマンドラインで渡されたファイルの行数をカウントするようにプログラムを完成させてください。
+
+ % ./countdir testdata/
+ testdata/christmas-carol.txt    4236
+ testdata/tom-sawyer.txt 9209
+
+* HTTP request
+
+Go標準ライブラリは、 [[https://golang.org/pkg/net/http/][`net/http`]] パッケージを使用してHTTPクライアントとサーバを記述するのをサポートしています。
+
+`net/http` パッケージを使うことはとても簡単です:
+
+ resp, err := http.Get("http://example.com/")
+ if err != nil {
+         // handle error
+ }
+ 
+`resp` は興味深いフィールドがたくさんある [[https://golang.org/pkg/net/http/#Response][`http.Response`]] 構造体です。
+
+HTTP URLを取得できる単純なHTTPクライアントを作成しましょう。
+
+ % ./httpget http://httpbin.org/ip
+ {
+   "origin": "125.203.122.114"
+ }
+
+このkataのコードは `$GOPATH/src/katas/httpget` にあります
+
+* JSON parsing
+
+`http://httpbin.org/` のサービスはJSON本体を返します。
+
+[[https://golang.org/pkg/encoding/json/][`encoding/json`]] パッケージは、JSONデータをマップにデコードできます。
+
+ result := make(map[string]string)
+ dec := json.NewDecoder(resp.Body)
+ err := dec.Decode(&result)
+ if err != nil {
+         // handle error
+ }
+
+これを使用して、パブリックIPアドレスを返すプログラムを作成しましょう。
+
+ % ./whatismyip 
+ My IP address is: 125.203.122.114
+
+このkataのコードは `$GOPATH/src/katas/whatismyip` にあります
+
+* JSON encoding
+
+RESTfulなWebサービスを作成する場合は、JSONでエンコードされたデータを返す必要があるのが一般的です。
+
+Goでは [[https://godoc.org/encoding/json][`encoding/json`]] パッケージはGoのマップとデータ構造をJSONに変換できます。
+
+.play -edit src/jsonenc/jsonenc1.go /START OMIT/,/END OMIT/
+
+* Controlling JSON encoding
+
+`encoding/json` パッケージは、構造体のフィールドをpublic（大文字で始める）にする必要があります。つまり、JSONドキュメントのキーは大文字になります。
+
+_tag_ を含むJSONの出力を制御し、これを修正できます。
+
+JSON tagの形式は、 [[https://golang.org/pkg/encoding/json/#Marshal][`json.Encode`]] メソッドに記述されています。
+
+.play -edit src/jsonenc/jsonenc2.go /START OMIT/,/END OMIT/
+
+* JSON encoding kata
+
+このkataのコードは `$GOPATH/src/katas/jsonenc` にあります
+
+* Writing HTTP servers
+
+Goの [[https://golang.org/pkg/net/http][`net/http`]] ライブラリを使って、Webアプリケーションを作成できます。
+
+GoでWebサーバーを書くことは、数行で簡単にできます。次に例を示します:
+
+.play -edit src/http/http1.go
+
+* Writing http servers (続き)
+
+これは単純なHTTPハンドラです
+
+ func index(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintln(w, "This is the index page")
+ }
+
+それは2つのパラメータを取ります
+
+- `w`, クライアントにデータを送信するために使用される `http.ResponseWriter`
+- `r`, uri、クエリパラメータ、リクエストボディを含む `http.Request`
+
+ mux := http.NewServeMux()
+
+`http.NewServeMux` は、通常はHTTPルータと呼ばれる `ServeMux` を返します。
+ 
+* Writing http servers (続き)
+
+ mux.HandleFunc("/", index)
+
+最上位ルート `"/"` を持つ `index` 関数を登録します。
+
+ http.ListenAndServe(":8000", mux)
+
+ポート8080にソケットをオープンし、 `mux` （ルータ）にリクエストを送信します。
+
+そのリッスンソケットに何か（wifi切断、ケーブルの抜き差し） 起こらない限り、 `http.ListenAndServe` はreturnすることはありません
+
+* go get
+
+`go`get` は、GitHub（そして他のいくつかの場所）からパッケージを取得することができる `git` の単純なラッパーです。
+
+パッケージのインポートパスが `go`get` の規則に従っている場合、 `go`get` はソースコードを取得して `$GOPATH` にダウンロードすることができます。
+
+`go`get` は、rubygemsやnpmなどのような完全な依存管理ではありませんが、多くのアプリケーションを書くのに十分です。
+
+より高度なHTTPルータである `gorilla/mux` のソースを取得するために `go`get` を使います
+
+ % go get github.com/gorilla/mux 
+ % ls $GOPATH/src/github.com/gorilla/mux
+ LICENSE                 context_gorilla.go      context_native_test.go  mux_test.go
+ README.md               context_gorilla_test.go doc.go                  old_test.go
+ bench_test.go           context_native.go       mux.go                  regexp.go
+ route.go
+
+* Using gorilla/mux
+
+標準のHTTPルータである `http.ServeMux` は非常に基本的なので、 `gorilla/mux` のhttpルータにアップグレードします。
+
+.play -edit src/http/http2.go
+
+* Line counting HTTP service
+
+httpを介して本の行を数えるHTTPサービスを作成しましょう。
+
+特徴:
+
+- クライアントが `/books/{book}` をリクエストすると、その本を検索し、数えられた行数を返します。
+- クライアントへのレスポンスは、JSON形式でなければならず、行数と書籍のタイトルが含まれている必要があります。
+- 本のディレクトリは設定可能です。
+
+ % ./httplinecount ../../../books/ &
+ [1] 17554
+ % curl http://localhost:8080/books/moby.txt
+ {"title":"moby.txt","lines":"22659"}
+
+このkataのコードは `$GOPATH/src/katas/httplinecount` にあります
+
+* Documenting packages with comments
+
+Goコードは伝統的にソースコード内のコメントとともに文書化されています。これは、Pythonのheredoc規約に似ています。
+
+以下が例です
+
+ // simplestrings provides simple helper functions to work with strings
+ package simplestrings
+
+ // APIVersion is the version of this package's API
+ const APIVersion = 3
+
+ // NextID returns the next ID in the sequence
+ func NextID() uint64 { ... }
+
+_Notes_
+
+- コメントは、それが適用されるものの直前にあります。コメントとシンボルの間に余分な改行を入れないでください
+- Publicシンボルとprivateシンボルの両方にコメントを付ける必要がありますが、godocはドキュメントのみを表示します
+
+* Scope
+
+Goで変数を宣言するすべての方法について説明しましたが、スコープについて説明する必要があります。
+
+.play -edit src/scope/scope1/main.go
+
+この4つの `x` は異なるスコープに存在するため、4つの `x` すべては _異なり_ ます。
+
+- [[https://play.golang.org/p/nIcOXVXgwl][こちら]] のリンクへアクセスし、 *Run* ボタンを押してください。
+
+* Scope (続き)
+
+宣言のスコープは、最も近い中括弧 `{` と `}` に束縛されています。
+
+.play -edit src/scope/scope2/main.go
+
+この例では、 `main` の内側で `x` を100、 `f` の内側で200を宣言します。
+
+- [[https://play.golang.org/p/Xfi3GOhTiC][こちら]] のリンクへアクセスし、 *Run* ボタンを押してください。
+- プログラムはあなたが期待したものを表示しましたか？
+
+* Scope (続き)
+
+このプログラムが何を表示すると思いますか？
+
+.play -edit src/scope/scope3/main.go
+
+- [[https://play.golang.org/p/7uxrebFzmK][こちら]] のリンクへアクセスし、 *Run* ボタンを押してください。
+- あなたは正しい答えを推測できましたか？
+
+* Scope (続き)
+
+このプログラムが何を表示すると思いますか？
+
+.play -edit src/scope/scope4/main.go
+
+- [[https://play.golang.org/p/7hpZre9LhI][こちら]] のリンクへアクセスし、 *Run* ボタンを押してください。
+- あなたは正しい答えを推測できましたか？
+
+* Shadowing
+
+以下は _シャドーイング_ と呼ばれています。
+
+.play -edit src/scope/scope5/main.go /START1 OMIT/,/END1 OMIT/
+
+_関数スコープ_ の変数で _パッケージスコープ_ の変数をシャドーイングするのは簡単です。
+
+.play -edit src/scope/scope5/main.go /START2 OMIT/,/END2 OMIT/
+
+しかし、 _関数スコープ_ 変数をシャドーイングする _ブロックスコープ_ 変数には驚くかもしれません。
+
+* Question time
+
+* Question time
+
+This is your time for questions
+
+Ask me anything!
+
+* Conclusion
+
+* Conclusion
+
+Thank you very much for participating today, I hope that you enjoyed yourself and are encouraged to learn more about Go.
+
+I would like to recommend several online resources:
+
+.link https://dave.cheney.net/resources-for-new-go-programmers Resources for new Go programmers
+.link https://tour.golang.org/welcome/1 tour.golang.org
+.link https://gobyexample.com/ Go by Example
+
+I would like to recommend two books:
+
+.link https://www.amazon.co.jp/exec/obidos/ASIN/4621300253 プログラミング言語Go
+.link https://www.amazon.co.jp/exec/obidos/ASIN/477418392X/ みんなのGo言語【現場で使える実践テクニック】
