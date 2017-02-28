@@ -25,8 +25,7 @@ If you have suggestions or corrections to this presentation, please raise [[http
 - 基礎文法
 - 応用文法
 - 開発環境とツール
-- 標準ライブラリ
-- パッケージとアプリケーション
+- HTTPサーバーの構築ハンズオン
 
 質問は随時受け付けています
 
@@ -1301,8 +1300,10 @@ PythonやCのような言語に慣れているなら、おそらく _フォー�
 
 - Goのインストール
 - エディタ / IDE の紹介
-- `$GOPATH` ワークスペースの設定
 - `go` コマンドの概要
+- `$GOPATH` ワークスペースの設定
+
+* Goのインストール
 
 * Goのインストール
 
@@ -1331,7 +1332,7 @@ Goプロジェクトが提供する `.pkg` インストーラを使用する場�
 
 Macのサードパーティソフトウェアを管理するHomebrewを使用する場合は、
 
- brew install golang
+ brew install go
 
 *MacPorts*
 
@@ -1377,9 +1378,47 @@ Goの最新バージョンをインストールする最も信頼性の高い方
 
  echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bash_profile
 
-* Go tool
+* 開発環境
 
-Goのインストールには、 `go` toolと呼ばれるツールが付属しています。
+* 開発環境
+
+Go言語のメジャーな開発環境は以下の5つです。
+
+- Vim / neovim
+- Emacs
+- IntelliJ / Gogland
+- VS Code
+- Atom
+
+次のスライドからは上位3つについて見ていきましょう
+
+* Vim / neovim
+
+VimでGoを書く際に有用なプラグインとしては、 [[https://github.com/fatih/vim-go][vim-go]] というのがあります。
+SyntaxCheckは [[https://github.com/vim-syntastic/syntastic][syntastic]] を使いましょう
+
+neovimの場合は `vim-go` の代わりに [[https://github.com/zchee/nvim-go][nvim-go]] というgo言語で作られたプラグインがあるのでそちらを使うことをお勧めします。
+SyntaxCheckは [[https://github.com/neomake/neomake][neomake]] を使いましょう
+
+_note_ : GoPlayコマンドは流さない様にお願いします
+
+* Emacs
+
+Emacsの場合は [[https://github.com/dominikh/go-mode.el][go-mode]] プラグインを使ってください
+
+* IntelliJ / Gogland
+
+IntelliJには [[https://github.com/go-lang-plugin-org/go-lang-idea-plugin][go-lang-idea-plugin]] という優れたプラグインがあります。
+
+go-lang-idea-plugin は IntelliJの公式開発に参加していた品質の高いプラグインですが、去年JetBrainsから [[https://www.jetbrains.com/go/][Gogland]] というIDEが発表されました。
+
+[[https://blog.jetbrains.com/jp/2016/12/15/726][参考]]
+
+* Goコマンド
+
+* Goコマンド
+
+Go言語には、標準で `go` toolと呼ばれるツールが付属しています。
 
 `go` toolは以下のことができます
 
@@ -1398,24 +1437,6 @@ Goのインストールには、 `go` toolと呼ばれるツールが付属し�
 - インターネットからパッケージを取得する
 
  go get
-
-* $GOPATH
-
-`go` toolは、あなたのGoソースコードが _すべて_ 格納されているワークスペースの中で動作します。
-
-このワークショップのソースコードはすべてこのリポジトリに含まれています。
-
-`$GOPATH` をこのリポジトリをチェックアウトしたベースディレクトリに設定することができます。例えば、
-
- % export GOPATH=$HOME/go-handson
-
-ワークスペースを使用すると、固定名で他のパッケージからコードをインポートすることができます。例えば、
-
- import "github.com/pkg/profile"
-
-は、以下に格納されている `profile` パッケージのコードをインポートします。
-
- $GOPATH/src/github.com/pkg/profile
 
 * HTTP Server
 
