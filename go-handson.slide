@@ -1,8 +1,11 @@
 Go hands-on for Go beginners
-28 Feb 2017
+12 Oct 2021
 
 Yusuke Kato
 i.can.feel.gravity@gmail.com
+
+Hiroto Funakoshi
+hiroto.funakoshi.hiroto@gmail.com
 
 * License and Materials
 
@@ -114,6 +117,19 @@ Go言語は非常に厳格な言語です
 - 型の挙動
 - 独自定義の関数の宣言方法
 - パッケージとimportの挙動など
+
+* 名前
+
+Goの関数、変数、定数、型、文のラベル、パッケージ名は _文字_、あるいは _アンダースコア_ で始まる必要があります
+
+また、Goはfor、ifなどの _25個_ の予約語が含まれており、それらは名前として利用できません
+
+
+ break    default       func     interface   select
+ case     defer         go       map         struct
+ shan     else          goto     package     switch
+ const    fallthrough   if       range       type
+ continue for           import   return      var
 
 * 定数
 
@@ -630,6 +646,14 @@ _note_: このスライドを[[https://go-talks.golang.org/][gotalks.golang.org]
 - パッケージと `import` ステートメントがどのように機能するか
 
 
+* ハンズオン
+
+Goの基礎的な文法について見てきました。ここまでの文法を使ってGoプログラムを書いてみましょう。
+
+* お題1: Fizz Buzz1
+
+* お題2: Int型の変数x,yを演算するadd, sub関数を実装
+
 * Advanced Syntax
 
 * Advanced Syntax
@@ -788,6 +812,26 @@ RubyやPythonのような言語に慣れている人は、より簡潔に書く�
 - [[https://play.golang.org/p/3Vl75w72JO][リンク]] へ行き *Run* ボタンを押して実行してみてください
 - そして短縮宣言をつかって `var` を `:=` に書き換えてみてください
 
+* 配列
+
+次に学ぶべき型は _配列_ です
+
+配列は _単一_ の型の順序付けられた値の集合です
+
+Goにおける配列は固定長なので配列のサイズを動的に変更できません
+動的に変更したい場合は後述する _スライス_ を利用してくだい
+
+string型のデータを保持する配列を宣言する例をみてみましょう
+ 
+ // 1. 配列宣言
+ var v1 = [3]string{}
+
+ // 2. 配列宣言
+ v2 := [3]string{}
+
+ // 3. 配列宣言（初期値あり）
+ v3 := [3]string{"Sun", "Mon", "Tue"}
+
 * スライス
 
 次に学ぶべき型は _スライス_ です
@@ -806,7 +850,7 @@ RubyやPythonのような言語に慣れている人は、より簡潔に書く�
 
 SliceはGo言語に於いて大変重要な要素の一つなので、少し詳しく見ていきましょう
 
-_note_ : スライスは配列とは異なるデータ型です、Go言語では配列もサポートしていますが、一般的に多用されるのはスライスのため、現時点では配列の話は説明しません 
+_note_ : スライスは配列とは異なるデータ型です、一般的に多用されるのはスライスです
 
 * スライスの大きさ
 
@@ -1291,6 +1335,15 @@ PythonやCのような言語に慣れているなら、おそらく _フォー�
 - 並行処理
 - `fmt` パッケージの仕組み
 
+* ハンズオン
+
+Goの応用文法について見てきました。ここまでの文法を使ってGoプログラムを書いてみましょう。
+
+* お題1: Fizz Buzz2
+
+* お題2: Nameメソッドを持つAccount構造体を実装
+
+* お題3: ToDoリストアプリの開発
 
 * 開発環境とツール
 
